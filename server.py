@@ -2,8 +2,13 @@ import socket, json, utils, threading
 from multicaster import Multicaster
 from utils import TYPE_CONF
 
-# start up a multicaster
-multicaster = Multicaster()
+multicasters = {}
+
+def getMulticaster(num):
+    if num not in multicasters:
+        multicasters[num] = Multicaster()
+        
+    return multicasters[num]
 
 # sent the packet to the correct processor based on method
 def processClient(packet, conn):
@@ -15,14 +20,14 @@ def processClient(packet, conn):
     utils.processReceivedPacket(json.loads(data), conn)
     
     # listen for and process registration packet three
-    data = conn.recv(73)
-    utils.processReceivedPacket(json.loads(data), conn)
+    data = json.loads(conn.recv(90))
+    utils.processReceivedPacket(data, conn)
     
     # send confirmation message to client
     utils.sendPacket(conn, TYPE_CONF)
 
     # add the registered client to the multicaster
-    multicaster.addClientSocket(conn)
+    getMulticaster(data['chatRoom']).addClientSocket(conn)
 
 def main():
     """ Start the server

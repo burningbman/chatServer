@@ -1,34 +1,28 @@
-import utils
-from threading import Timer
+import utils, json, threading
 from utils import TYPE_CHAT
-
-DELAY = 1
 
 class Multicaster(object):
 
     def __init__(self):
         self.clientSockets = list()
-        self.file = open('input.txt', 'r')
         
-        # set up a timer to send out the chat message to all connected clients
-        Timer(DELAY, self.sendChat).start()
+    def listenToClientSocket(self, socket):
+        # listen for client chat messages
+        while True:
+            data = json.loads(socket.recv(4096))
+            utils.processReceivedPacket(data, socket)
+            self.sendChat(data['data'])
         
     def addClientSocket(self, socket):
         self.clientSockets.append(socket)
         
-    def sendChat(self):
-        next100Bytes = self.file.read(100)
+        # start a thread to listen to client for chat
+        threading.Thread(target=self.listenToClientSocket, args=[socket]).start()
         
-        # if the file is empty, stop casting
-        if next100Bytes == None:
-            return
-        
+    def sendChat(self, data):        
         # send the 100 bytes to all connected clients
         for i, socket in enumerate(self.clientSockets):
             utils.sendPacket(socket, TYPE_CHAT, {
-                'data': next100Bytes,
+                'data': data,
                 'seqNumber': i # sequence number of the chat session
                 })
-
-        # schedule the next message cast
-        Timer(DELAY, self.sendChat).start()

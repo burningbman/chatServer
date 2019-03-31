@@ -1,4 +1,4 @@
-import socket, json
+import socket, json, sys
 global HOST, PORT, TYPE_REG, TYPE_CONF, TYPE_CHAT, TYPE_CHAT_RESP, TYPE_MAP
 
 def sendPacket(conn, packetType, packetData={}):
@@ -71,4 +71,4 @@ TYPE_MAP = {
     TYPE_CHAT: 'CHAT',
     TYPE_CHAT_RESP: 'CHAT RESPONSE'
     }
-INT_VALUES = 'type', 'seqNumber'
+INT_VALUES = 'type', 'seqNumber', 'chatRoom'
